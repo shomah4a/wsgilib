@@ -16,6 +16,11 @@ import hmac
 import hashlib
 import Cookie
 
+try:
+    import cPickle as pickle
+except:
+    import pickle
+
 
 def makeSignature(method, url, secret, token='', params={}):
     '''
@@ -278,6 +283,13 @@ class OAuthClientBase(object):
 
 
     @abc.abstractmethod
+    def loadSessionInfo(self, key):
+        '''
+        セッション取得
+        '''
+
+
+    @abc.abstractmethod
     def getUserInfo(self, session, environ):
         '''
         ユーザ情報を取得
@@ -306,34 +318,61 @@ class OAuthClientBase(object):
 
 
 
+
+class SessionInfo(object):
+
+    def __init__(self, *args, **argd):
+
+        super(SessionInfo, self).__init__(*args, **argd)
+
+        self.requestTokens = {}
+        self.accessTokens = {}
+        self.userTokens = {}
+        self.sessions = {}
+
+
+    def saveRequestToken(self, token, environ):
+
+        print 'request token', token.token, token.secret
+
+        self.requestTokens[token.token] = token.secret
+
+
+    def saveAccessToken(self, token, environ):
+
+        print 'access token', token.token, token.secret
+
+        self.accessToken[token.token] = token.secret
+
+
+    def getRequestTokenSecret(self, token, environ):
+
+        return self.requestTokens.get(token)
+
+    
+    def saveSessionKey(self, session, token, environ):
+
+        self.sessions[session] = token
+
+
+    def loadSessionInfo(self, key, environ):
+
+        return self.sessions.get(key)
+
+
+
+
 if __name__ == '__main__':
 
-    class Twitter(OAuthClientBase):
+    class Twitter(SessionInfo, OAuthClientBase):
         
         requestTokenURL = 'http://twitter.com/oauth/request_token'
         authorizeURL = 'http://twitter.com/oauth/authorize'
         accessTokenURL = 'http://twitter.com/oauth/access_token'
 
-
-        def __init__(self, *args, **argd):
-
-            super(Twitter, self).__init__(*args, **argd)
-    
-
-        def saveRequestToken(self, token, token_secret):
-            pass
-
-
-        def saveVerifier(self, token, verifier):
-            pass
-
-
-        def saveAccessToken(self, token, token_secret):
-            pass
-
-
-        def getRequestTokenSecret(self, token):
-            pass
+        def getUserInfo(self, info, environ):
+            
+            return 100
 
 
     tw = Twitter('kObAPaqzyXQQnvyRHiLDCA',
@@ -341,7 +380,13 @@ if __name__ == '__main__':
 
     import wsgiref.simple_server
 
-    wsgiref.simple_server.make_server('', 8080, tw.redirectAuthorizeURL).serve_forever()
+    import middlewares
+
+    app = middlewares.selectApp({'/': tw.redirectAuthorizeURL,
+                                 '/callback': tw.authCallback,
+                                 })
+
+    wsgiref.simple_server.make_server('', 8080, app).serve_forever()
 
     
     
