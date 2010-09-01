@@ -211,7 +211,7 @@ class OAuthClientBase(object):
 
         session = self.makeSessionKey(actoken, environ)
 
-        self.saveSessionKey(session, actoken, environ)
+        self.saveSession(session, actoken, environ)
 
         cookie = environ.get('HTTP_COOKIE')
 
@@ -249,12 +249,12 @@ class OAuthClientBase(object):
 
             key = cookie[self.sessionKey].value
 
-            info = self.loadSessionInfo(key, environ)
+            actoken = self.loadSession(key, environ)
 
             if not info:
                 return nosession(environ, start_response)
 
-            user = self.getUserInfo(info, environ)
+            user = self.getUserInfo(actoken, environ)
 
             if not user:
                 return nosession(environ, start_response)
@@ -276,14 +276,14 @@ class OAuthClientBase(object):
 
 
     @abc.abstractmethod
-    def saveSessionKey(self, session, token, environ):
+    def saveSession(self, session, token, environ):
         '''
-        セッションキーを保存
+        セッションを保存
         '''
 
 
     @abc.abstractmethod
-    def loadSessionInfo(self, key):
+    def loadSession(self, key):
         '''
         セッション取得
         '''
@@ -350,12 +350,12 @@ class SessionInfo(object):
         return self.requestTokens.get(token)
 
     
-    def saveSessionKey(self, session, token, environ):
+    def saveSession(self, session, token, environ):
 
         self.sessions[session] = token
 
 
-    def loadSessionInfo(self, key, environ):
+    def loadSession(self, key, environ):
 
         return self.sessions.get(key)
 
@@ -375,8 +375,8 @@ if __name__ == '__main__':
             return 100
 
 
-    tw = Twitter('kObAPaqzyXQQnvyRHiLDCA',
-                 '2d0r0JMkR4zjtmvKQ6nMxIunw3rRLe2j52B5J1j3ffU')
+    tw = Twitter('xxxxxxxxxxxxxxxxxxxxxxxx',
+                 'yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy')
 
     import wsgiref.simple_server
 
