@@ -342,7 +342,7 @@ class SessionInfo(object):
 
         print 'access token', token.token, token.secret
 
-        self.accessToken[token.token] = token
+        self.accessTokens[token.token] = token
 
 
     def getRequestTokenSecret(self, token, environ):
