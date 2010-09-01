@@ -360,15 +360,17 @@ class SessionInfo(object):
         return self.sessions.get(key)
 
 
+class TwitterBase(OAuthClientBase):
+        
+    requestTokenURL = 'http://twitter.com/oauth/request_token'
+    authorizeURL = 'http://twitter.com/oauth/authorize'
+    accessTokenURL = 'http://twitter.com/oauth/access_token'
+
 
 
 if __name__ == '__main__':
 
-    class Twitter(SessionInfo, OAuthClientBase):
-        
-        requestTokenURL = 'http://twitter.com/oauth/request_token'
-        authorizeURL = 'http://twitter.com/oauth/authorize'
-        accessTokenURL = 'http://twitter.com/oauth/access_token'
+    class Twitter(SessionInfo, TwitterBase):
 
         def getUserInfo(self, info, environ):
             
