@@ -142,12 +142,15 @@ if __name__ == '__main__':
                  'yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy')
 
     import wsgiref.simple_server
+    import applications
 
     import middlewares
 
-    app = middlewares.selectApp({'/': tw.redirectAuthorizeURL,
-                                 '/callback': tw.authCallback,
-                                 })
+    app = middlewares.selectApp({
+            '/': applications.printEnv,
+            '/authorize': tw.redirectAuthorizeURL,
+            '/callback': tw.authCallback,
+            })
 
     wsgiref.simple_server.make_server('', 8080, app).serve_forever()
 

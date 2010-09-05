@@ -185,6 +185,33 @@ def test():
     srv.serve_forever()
 
 
+def printEnv(environ, start_response):
+
+    import StringIO
+    from xml.sax import saxutils
+
+    fp = StringIO.StringIO()
+
+    print >> fp, '''
+<html><head><title>Test Print</title><head>
+<body>
+<table border="1">
+'''
+    for v in ((k, saxutils.escape(str(environ[k]))) for k in sorted(environ)):
+        print >> fp, '<tr><td>%s</td><td>%s</td></tr>' % v
+    
+    print >> fp, '''
+</table>
+</body>
+</html>
+'''
+    start_response('200 OK', [])
+
+    fp.seek(0)
+    
+    return fp
+
+
 
 if __name__ == '__main__':
     test()
