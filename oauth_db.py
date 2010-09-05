@@ -89,9 +89,14 @@ class OAuthDBMixin(object):
 
         with self.DBSession() as sess:
 
-            tok = sess.query(self.SessionInfo).filter_by(sessionId=session).one()
+            tok = sess.query(self.SessionInfo).filter_by(sessionId=session)
 
-            return oauth.AccessToken(tok.token.token, tok,token.secret)            
+            if tok.count() == 0:
+                return None
+
+            tok = tok.one()
+
+            return oauth.AccessToken(tok.token.token, tok.token.secret)
 
 
     def saveRequestToken(self, token, environ):
