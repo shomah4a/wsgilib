@@ -10,7 +10,7 @@ import oauth
 
 class OAuthDBMixin(object):
 
-    DBPATH = 'sqlite:////oauth.db'
+    DBPATH = 'sqlite:///oauth.db'
     SESSION_OPTION = dict(autoflush=True)
 
     
@@ -53,6 +53,7 @@ class OAuthDBMixin(object):
             el.using_options(tablename='sessions', session=self.Session)
 
             id = el.Field(el.Unicode, required=True, index=True)
+            createdAt = el.Field(el.DateTime, required=False)
 
             token = el.OneToOne(AccessToken)
 
@@ -67,7 +68,7 @@ class OAuthDBMixin(object):
         self.DBSession = lambda: contextlib.closing(self.Session())
 
 
-    def saveSessionKey(self, session, token, environ):
+    def saveSession(self, session, token, environ):
 
         with self.DBSession() as sess:
 
@@ -76,9 +77,10 @@ class OAuthDBMixin(object):
             s = self.SessionInfo(id=session, token=tok)
 
             sess.add(s)
+            sess.commit()
 
 
-    def loadSessionInfo(self, session, environ):
+    def loadSession(self, session, environ):
 
         with self.DBSession() as sess:
 
@@ -95,6 +97,7 @@ class OAuthDBMixin(object):
                                     secret=token.secret)
 
             sess.add(tok)
+            sess.commit()
 
         
     def saveAccessToken(self, access_token, environ):
@@ -105,6 +108,7 @@ class OAuthDBMixin(object):
                                    secret=access_token.secret)
 
             sess.add(tok)
+            sess.commit()
         
 
 

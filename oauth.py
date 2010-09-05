@@ -91,7 +91,6 @@ class OAuthClientBase(object):
         self.userInfo = userinfo
 
 
-
     def makeParams(self, token=None, tokensecret=None, verifier=None):
         '''
         パラメータ作成
@@ -254,7 +253,7 @@ class OAuthClientBase(object):
             if not info:
                 return nosession(environ, start_response)
 
-            user = self.getUserInfo(actoken, environ)
+            user = sctoken
 
             if not user:
                 return nosession(environ, start_response)
@@ -290,13 +289,6 @@ class OAuthClientBase(object):
 
 
     @abc.abstractmethod
-    def getUserInfo(self, session, environ):
-        '''
-        ユーザ情報を取得
-        '''
-
-
-    @abc.abstractmethod
     def saveRequestToken(self, token, environ):
         '''
         リクエストトークンを保存
@@ -315,7 +307,6 @@ class OAuthClientBase(object):
         '''
         request token から request token secret を取得
         '''
-
 
 
 
@@ -360,21 +351,19 @@ class SessionInfo(object):
         return self.sessions.get(key)
 
 
+
 class TwitterBase(OAuthClientBase):
-        
-    requestTokenURL = 'http://twitter.com/oauth/request_token'
-    authorizeURL = 'http://twitter.com/oauth/authorize'
-    accessTokenURL = 'http://twitter.com/oauth/access_token'
+
+    requestTokenURL = 'https://twitter.com/oauth/request_token'
+    authorizeURL = 'https://twitter.com/oauth/authorize'
+    accessTokenURL = 'https://twitter.com/oauth/access_token'
 
 
 
 if __name__ == '__main__':
 
     class Twitter(SessionInfo, TwitterBase):
-
-        def getUserInfo(self, info, environ):
-            
-            return 100
+        pass
 
 
     tw = Twitter('xxxxxxxxxxxxxxxxxxxxxxxx',
