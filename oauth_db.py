@@ -12,13 +12,14 @@ class OAuthDBMixin(object):
 
     DBPATH = 'sqlite:///oauth.db'
     SESSION_OPTION = dict(autoflush=True)
+    ENGINE_OPTION = dict(echo=True)
 
     
     def __init__(self, *argl, **argd):
 
         super(OAuthDBMixin, self).__init__(*argl, **argd)
 
-        self.engine = al.create_engine(self.DBPATH, echo=True)
+        self.engine = al.create_engine(self.DBPATH, **self.ENGINE_OPTION)
 
         self.Session = orm.scoped_session(orm.sessionmaker(bind=self.engine,
                                                            **self.SESSION_OPTION))
