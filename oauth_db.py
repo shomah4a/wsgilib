@@ -16,16 +16,18 @@ class OAuthDBMixin(object):
     
     def __init__(self, *argl, **argd):
 
-        self.engine = el.create_engine(self.DBPATH, echo=True)
+        super(OAuthDBMixin, self).__init__(*argl, **argd)
 
-        self.Session = orm.scoped_session(orm.sessionmaker(bind=engine,
+        self.engine = al.create_engine(self.DBPATH, echo=True)
+
+        self.Session = orm.scoped_session(orm.sessionmaker(bind=self.engine,
                                                            **self.SESSION_OPTION))
 
         self.metadata = el.metadata
-        self.metadata.bind = engine
+        self.metadata.bind = self.engine
 
 
-        class RequestToken(el.Entiry):
+        class RequestToken(el.Entity):
             '''
             Request Token
             '''
@@ -36,7 +38,7 @@ class OAuthDBMixin(object):
             secret = el.Field(el.Unicode, required=True)
 
 
-        class AccessToken(el.Entiry):
+        class AccessToken(el.Entity):
             '''
             Access Token
             '''
@@ -45,6 +47,9 @@ class OAuthDBMixin(object):
             token = el.Field(el.Unicode, required=True, index=True)
             secret = el.Field(el.Unicode, required=True)
 
+            sessions = el.OneToMany('SessionInfo')
+            
+
 
         class SessionInfo(el.Entity):
             '''
@@ -52,12 +57,12 @@ class OAuthDBMixin(object):
             '''
             el.using_options(tablename='sessions', session=self.Session)
 
-            id = el.Field(el.Unicode, required=True, index=True)
+            sessionId = el.Field(el.Unicode, required=True, index=True)
             createdAt = el.Field(el.DateTime, required=False)
 
-            token = el.OneToOne(AccessToken)
+            token = el.ManyToOne(AccessToken, inverse='sessions')
 
-
+                    
         self.RequestToken = RequestToken
         self.AccessToken = AccessToken
         self.SessionInfo = SessionInfo
@@ -74,7 +79,7 @@ class OAuthDBMixin(object):
 
             tok = sess.query(self.AccessToken).filter_by(token=token.token).one()
 
-            s = self.SessionInfo(id=session, token=tok)
+            s = self.SessionInfo(sessionId=session, token=tok)
 
             sess.add(s)
             sess.commit()
@@ -84,7 +89,7 @@ class OAuthDBMixin(object):
 
         with self.DBSession() as sess:
 
-            tok = sess.query(self.SessionInfo).filter_by(id=session).one()
+            tok = sess.query(self.SessionInfo).filter_by(sessionId=session).one()
 
             return oauth.AccessToken(tok.token.token, tok,token.secret)            
 
@@ -125,4 +130,24 @@ class OAuthDBMixin(object):
         
         return oauth.RequestToken(result.token, result.secret)
 
+
+
+if __name__ == '__main__':
+
+    class Twitter(OAuthDBMixin, oauth.TwitterBase):
+        pass
+
+
+    tw = Twitter('xxxxxxxxxxxxxxxxxxxxxxx',
+                 'yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy')
+
+    import wsgiref.simple_server
+
+    import middlewares
+
+    app = middlewares.selectApp({'/': tw.redirectAuthorizeURL,
+                                 '/callback': tw.authCallback,
+                                 })
+
+    wsgiref.simple_server.make_server('', 8080, app).serve_forever()
 
