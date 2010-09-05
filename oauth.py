@@ -246,9 +246,6 @@ class OAuthClientBase(object):
             if self.sessionKey not in cookie:
                 return nosession(environ, start_response)
 
-            if self.sessionKey in cookie:
-                return nosession(environ, start_response)
-            
             key = cookie[self.sessionKey].value
 
             actoken = self.loadSession(key, environ)
@@ -256,7 +253,7 @@ class OAuthClientBase(object):
             if not actoken:
                 return nosession(environ, start_response)
 
-            user = sctoken
+            user = actoken
 
             if not user:
                 return nosession(environ, start_response)

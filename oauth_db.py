@@ -77,6 +77,11 @@ class OAuthDBMixin(object):
 
         with self.DBSession() as sess:
 
+            q = sess.query(self.SessionInfo).filter_by(sessionId=session)
+            
+            if q.count():
+                return
+
             tok = sess.query(self.AccessToken).filter_by(token=token.token).one()
 
             s = self.SessionInfo(sessionId=session, token=tok)
@@ -113,6 +118,9 @@ class OAuthDBMixin(object):
     def saveAccessToken(self, access_token, environ):
         
         with self.DBSession() as sess:
+
+            if sess.query(self.AccessToken).filter_by(token=access_token.token).count():
+                return
 
             tok = self.AccessToken(token=access_token.token,
                                    secret=access_token.secret)
@@ -152,7 +160,7 @@ if __name__ == '__main__':
     import middlewares
 
     app = middlewares.selectApp({
-            '/': applications.printEnv,
+            '/': tw.oauthSession(applications.printEnv),
             '/authorize': tw.redirectAuthorizeURL,
             '/callback': tw.authCallback,
             })
